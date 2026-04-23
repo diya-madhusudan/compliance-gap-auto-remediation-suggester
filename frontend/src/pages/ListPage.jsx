@@ -6,13 +6,34 @@ function ListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // 🔁 Fetch all records
+  const [page, setPage] = useState(0);
+  const [size] = useState(5);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetchData();
+  }, [page, search]);
+
   const fetchData = () => {
     setLoading(true);
-    API.get("/all")
+    setError(false);
+
+    let url = "";
+
+    if (search) {
+      url = `/search?q=${search}`;
+    } else {
+      url = `/all?page=${page}&size=${size}`;
+    }
+
+    API.get(url)
       .then((res) => {
-        setData(res.data);
-        setError(false);
+        // handle both paginated and normal response
+        if (res.data.content) {
+          setData(res.data.content);
+        } else {
+          setData(res.data);
+        }
       })
       .catch(() => {
         setError(true);
@@ -22,33 +43,10 @@ function ListPage() {
       });
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // 🔍 Search
-  const handleSearch = (value) => {
-    if (!value) {
-      fetchData();
-      return;
-    }
-
-    API.get(`/search?q=${value}`)
-      .then((res) => setData(res.data))
-      .catch(() => setError(true));
-  };
-
-  // ❌ Delete
   const handleDelete = (id) => {
     API.delete(`/delete/${id}`)
       .then(() => fetchData())
-      .catch(() => console.error("Delete failed"));
-  };
-
-  // ✏️ Edit → go to form page
-  const handleEdit = (item) => {
-    localStorage.setItem("editData", JSON.stringify(item));
-    window.location.href = "/form";
+      .catch(() => alert("Delete failed"));
   };
 
   // 🔄 Loading
@@ -56,7 +54,7 @@ function ListPage() {
     return <p className="text-center mt-10">Loading...</p>;
   }
 
-  // ❌ Error
+  // ❌ Error (backend not ready)
   if (error) {
     return (
       <p className="text-center mt-10 text-red-500">
@@ -72,32 +70,24 @@ function ListPage() {
 
   return (
     <div className="p-5">
-      <h2 className="text-xl font-bold mb-4">
-        Compliance Gap Records
-      </h2>
+      <h2 className="text-xl font-bold mb-4">Compliance Records</h2>
 
       {/* 🔍 Search */}
       <input
-        type="text"
         placeholder="Search..."
-        onChange={(e) => handleSearch(e.target.value)}
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(0);
+        }}
         className="border p-2 mb-4 w-full"
       />
 
-      {/* ➕ Go to Create Form */}
-      <button
-        onClick={() => (window.location.href = "/form")}
-        className="bg-green-500 text-white px-4 py-2 mb-4"
-      >
-        + Add Record
-      </button>
-
-      {/* 📊 Table */}
-      <table className="w-full border border-gray-300">
-        <thead className="bg-gray-200">
-          <tr>
+      {/* 📋 Table */}
+      <table className="w-full border">
+        <thead>
+          <tr className="bg-gray-200">
             <th className="p-2 border">Title</th>
-            <th className="p-2 border">Description</th>
             <th className="p-2 border">Status</th>
             <th className="p-2 border">Priority</th>
             <th className="p-2 border">Actions</th>
@@ -108,29 +98,52 @@ function ListPage() {
           {data.map((item) => (
             <tr key={item.id}>
               <td className="p-2 border">{item.title}</td>
-              <td className="p-2 border">{item.description}</td>
               <td className="p-2 border">{item.status}</td>
               <td className="p-2 border">{item.priority}</td>
-
               <td className="p-2 border space-x-2">
+                
+                {/* ✏️ Edit */}
                 <button
-                  onClick={() => handleEdit(item)}
-                  className="bg-yellow-500 text-white px-2 py-1"
+                  onClick={() =>
+                    (window.location.href = `/form?id=${item.id}`)
+                  }
+                  className="bg-yellow-400 px-2 py-1"
                 >
                   Edit
                 </button>
 
+                {/* 🗑 Delete */}
                 <button
                   onClick={() => handleDelete(item.id)}
                   className="bg-red-500 text-white px-2 py-1"
                 >
                   Delete
                 </button>
+
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* 📄 Pagination */}
+      {!search && (
+        <div className="mt-4 space-x-2">
+          <button
+            onClick={() => setPage((p) => Math.max(p - 1, 0))}
+            className="px-3 py-1 bg-gray-300"
+          >
+            Prev
+          </button>
+
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            className="px-3 py-1 bg-gray-300"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

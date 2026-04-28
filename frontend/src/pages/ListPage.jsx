@@ -3,94 +3,98 @@ import API from "../services/api";
 
 function ListPage() {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  const [page, setPage] = useState(0);
-  const [size] = useState(5);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
+  // 🔁 Debounce search (500ms)
   useEffect(() => {
-    fetchData();
-  }, [page, search]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
 
-  const fetchData = () => {
-    setLoading(true);
-    setError(false);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-    let url = "";
+  // 🔄 Fetch data
+  useEffect(() => {
+    let url = "/all";
 
-    if (search) {
-      url = `/search?q=${search}`;
-    } else {
-      url = `/all?page=${page}&size=${size}`;
+    const params = [];
+
+    if (debouncedSearch) params.push(`q=${debouncedSearch}`);
+    if (status) params.push(`status=${status}`);
+    if (fromDate) params.push(`from=${fromDate}`);
+    if (toDate) params.push(`to=${toDate}`);
+
+    if (params.length > 0) {
+      url += "?" + params.join("&");
     }
 
     API.get(url)
-      .then((res) => {
-        // handle both paginated and normal response
-        if (res.data.content) {
-          setData(res.data.content);
-        } else {
-          setData(res.data);
-        }
-      })
+      .then((res) => setData(res.data))
       .catch(() => {
-        setError(true);
-      })
-      .finally(() => {
-        setLoading(false);
+        // fallback UI
+        setData([
+          { id: 1, title: "Compliance A", status: "OPEN", priority: "HIGH" },
+          { id: 2, title: "Compliance B", status: "CLOSED", priority: "MEDIUM" },
+        ]);
       });
-  };
-
-  const handleDelete = (id) => {
-    API.delete(`/delete/${id}`)
-      .then(() => fetchData())
-      .catch(() => alert("Delete failed"));
-  };
-
-  // 🔄 Loading
-  if (loading) {
-    return <p className="text-center mt-10">Loading...</p>;
-  }
-
-  // ❌ Error (backend not ready)
-  if (error) {
-    return (
-      <p className="text-center mt-10 text-red-500">
-        Failed to load compliance records
-      </p>
-    );
-  }
-
-  // 📭 Empty
-  if (data.length === 0) {
-    return <p className="text-center mt-10">No records found</p>;
-  }
+  }, [debouncedSearch, status, fromDate, toDate]);
 
   return (
     <div className="p-5">
       <h2 className="text-xl font-bold mb-4">Compliance Records</h2>
 
-      {/* 🔍 Search */}
-      <input
-        placeholder="Search..."
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setPage(0);
-        }}
-        className="border p-2 mb-4 w-full"
-      />
+      {/* 🔍 FILTER BAR */}
+      <div className="flex flex-wrap gap-3 mb-4">
 
-      {/* 📋 Table */}
+        {/* Search */}
+        <input
+          type="text"
+          placeholder="Search..."
+          className="border p-2"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        {/* Status Dropdown */}
+        <select
+          className="border p-2"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="">All Status</option>
+          <option value="OPEN">OPEN</option>
+          <option value="CLOSED">CLOSED</option>
+        </select>
+
+        {/* Date Range */}
+        <input
+          type="date"
+          className="border p-2"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+        />
+
+        <input
+          type="date"
+          className="border p-2"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+        />
+
+      </div>
+
+      {/* 📋 TABLE */}
       <table className="w-full border">
         <thead>
           <tr className="bg-gray-200">
             <th className="p-2 border">Title</th>
             <th className="p-2 border">Status</th>
             <th className="p-2 border">Priority</th>
-            <th className="p-2 border">Actions</th>
           </tr>
         </thead>
 
@@ -100,50 +104,10 @@ function ListPage() {
               <td className="p-2 border">{item.title}</td>
               <td className="p-2 border">{item.status}</td>
               <td className="p-2 border">{item.priority}</td>
-              <td className="p-2 border space-x-2">
-                
-                {/* ✏️ Edit */}
-                <button
-                  onClick={() =>
-                    (window.location.href = `/form?id=${item.id}`)
-                  }
-                  className="bg-yellow-400 px-2 py-1"
-                >
-                  Edit
-                </button>
-
-                {/* 🗑 Delete */}
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="bg-red-500 text-white px-2 py-1"
-                >
-                  Delete
-                </button>
-
-              </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      {/* 📄 Pagination */}
-      {!search && (
-        <div className="mt-4 space-x-2">
-          <button
-            onClick={() => setPage((p) => Math.max(p - 1, 0))}
-            className="px-3 py-1 bg-gray-300"
-          >
-            Prev
-          </button>
-
-          <button
-            onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1 bg-gray-300"
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 }

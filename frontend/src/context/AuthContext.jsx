@@ -3,18 +3,17 @@ import { createContext, useState } from "react";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // ✅ get saved user from localStorage
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
+  // ✅ persist login using localStorage
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   const login = (username, password) => {
     if (username === "admin" && password === "admin") {
       const userData = { username };
 
       setUser(userData);
-
-      // ✅ save to localStorage
       localStorage.setItem("user", JSON.stringify(userData));
 
       return true;
@@ -24,9 +23,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-
-    // ✅ remove from localStorage
     localStorage.removeItem("user");
+    window.location.href = "/login";
   };
 
   return (

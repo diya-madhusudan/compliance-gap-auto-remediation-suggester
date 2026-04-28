@@ -4,50 +4,46 @@ import { AuthContext } from "../context/AuthContext";
 function LoginPage() {
   const { login } = useContext(AuthContext);
 
-  const [form, setForm] = useState({
-    username: "",
-    password: "",
-  });
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const success = login(form.username, form.password);
+  const handleLogin = () => {
+    const success = login(username, password);
 
     if (success) {
-      window.location.href = "/";
+      window.location.href = "/dashboard"; // ✅ go to dashboard
     } else {
       alert("Invalid credentials");
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow w-80 space-y-4">
-        <h2 className="text-xl font-bold text-center">Login</h2>
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="bg-white p-6 rounded shadow w-80">
+        <h2 className="text-xl font-bold mb-4 text-center">Login</h2>
 
         <input
-          type="text"
+          className="w-full border p-2 mb-3"
           placeholder="Username"
-          className="border p-2 w-full"
-          onChange={(e) =>
-            setForm({ ...form, username: e.target.value })
-          }
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
         />
 
         <input
           type="password"
+          className="w-full border p-2 mb-4"
           placeholder="Password"
-          className="border p-2 w-full"
-          onChange={(e) =>
-            setForm({ ...form, password: e.target.value })
-          }
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button className="bg-blue-500 text-white py-2 w-full rounded">
+        <button
+          onClick={handleLogin}
+          className="w-full bg-blue-500 text-white py-2 rounded"
+        >
           Login
         </button>
-      </form>
+      </div>
     </div>
   );
 }

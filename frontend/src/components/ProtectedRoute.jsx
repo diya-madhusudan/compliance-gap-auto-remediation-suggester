@@ -5,7 +5,7 @@ function ProtectedRoute({ children }) {
   const { user } = useContext(AuthContext);
 
   if (!user) {
-    window.location.href = "/login";  // 🔥 redirect
+    window.location.href = "/login";
     return null;
   }
 

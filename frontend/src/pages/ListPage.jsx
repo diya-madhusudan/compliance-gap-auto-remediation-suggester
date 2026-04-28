@@ -9,7 +9,7 @@ function ListPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  // 🔁 Debounce search (500ms)
+  // 🔁 Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -21,7 +21,6 @@ function ListPage() {
   // 🔄 Fetch data
   useEffect(() => {
     let url = "/all";
-
     const params = [];
 
     if (debouncedSearch) params.push(`q=${debouncedSearch}`);
@@ -34,9 +33,11 @@ function ListPage() {
     }
 
     API.get(url)
-      .then((res) => setData(res.data))
+      .then((res) => {
+        setData(res.data.content || res.data);
+      })
       .catch(() => {
-        // fallback UI
+        // fallback data
         setData([
           { id: 1, title: "Compliance A", status: "OPEN", priority: "HIGH" },
           { id: 2, title: "Compliance B", status: "CLOSED", priority: "MEDIUM" },
@@ -60,7 +61,7 @@ function ListPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        {/* Status Dropdown */}
+        {/* Status */}
         <select
           className="border p-2"
           value={status}
@@ -71,7 +72,7 @@ function ListPage() {
           <option value="CLOSED">CLOSED</option>
         </select>
 
-        {/* Date Range */}
+        {/* Date range */}
         <input
           type="date"
           className="border p-2"
@@ -85,7 +86,44 @@ function ListPage() {
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
         />
+      </div>
 
+      {/* 🚀 ACTIONS */}
+      <div className="flex gap-3 mb-4">
+
+        {/* Export CSV */}
+        <button
+          onClick={() =>
+            window.open("http://localhost:8080/export", "_blank")
+          }
+          className="bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Export CSV
+        </button>
+
+        {/* Upload */}
+        <input
+          type="file"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+              alert("File too large (max 2MB)");
+              return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("http://localhost:8080/upload", {
+              method: "POST",
+              body: formData,
+            })
+              .then(() => alert("File uploaded"))
+              .catch(() => alert("Upload failed"));
+          }}
+        />
       </div>
 
       {/* 📋 TABLE */}
@@ -100,7 +138,13 @@ function ListPage() {
 
         <tbody>
           {data.map((item) => (
-            <tr key={item.id}>
+            <tr
+              key={item.id}
+              className="cursor-pointer hover:bg-gray-100"
+              onClick={() =>
+                (window.location.href = `/detail?id=${item.id}`)
+              }
+            >
               <td className="p-2 border">{item.title}</td>
               <td className="p-2 border">{item.status}</td>
               <td className="p-2 border">{item.priority}</td>

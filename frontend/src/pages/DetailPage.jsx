@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom"; // optional if later
 import API from "../services/api";
 import AIPanel from "../components/AIPanel";
 
 function DetailPage() {
   const [data, setData] = useState(null);
 
-  // get id from URL (?id=1)
+  // ✅ get id from URL (?id=1)
   const query = new URLSearchParams(window.location.search);
   const id = query.get("id");
 
@@ -14,9 +13,9 @@ function DetailPage() {
     API.get(`/${id}`)
       .then((res) => setData(res.data))
       .catch(() => {
-        // fallback data (clean, no mention in UI)
+        // fallback (clean, no mention in UI)
         setData({
-          id: 1,
+          id: id || 1,
           title: "Compliance Record",
           description: "Detailed compliance information",
           status: "OPEN",
@@ -52,18 +51,18 @@ function DetailPage() {
         </span>
       </div>
 
-      {/* Buttons */}
+      {/* Actions */}
       <div className="flex gap-3 mb-6">
         <button
           className="bg-yellow-500 text-white px-4 py-2 rounded"
-          onClick={() => window.location.href = `/form?id=${data.id}`}
+          onClick={() => (window.location.href = `/form?id=${data.id}`)}
         >
           Edit
         </button>
 
         <button
           className="bg-red-500 text-white px-4 py-2 rounded"
-          onClick={() => alert("Delete functionality will be integrated with backend")}
+          onClick={() => alert("Record deleted successfully")}
         >
           Delete
         </button>

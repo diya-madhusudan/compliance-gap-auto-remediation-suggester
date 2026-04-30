@@ -1,76 +1,76 @@
 import { useEffect, useState } from "react";
-import API from "../services/api";
-import AIPanel from "../components/AIPanel";
 
 function DetailPage() {
-  const [data, setData] = useState(null);
-
-  // ✅ get id from URL (?id=1)
-  const query = new URLSearchParams(window.location.search);
-  const id = query.get("id");
+  const [record, setRecord] = useState(null);
 
   useEffect(() => {
-    API.get(`/${id}`)
-      .then((res) => setData(res.data))
-      .catch(() => {
-        // fallback (clean, no mention in UI)
-        setData({
-          id: id || 1,
-          title: "Compliance Record",
-          description: "Detailed compliance information",
-          status: "OPEN",
-          priority: "MEDIUM",
-          score: 75,
-        });
-      });
-  }, [id]);
+    // Simulated data (replace with API later)
+    setRecord({
+      id: 1,
+      title: "Sample Record",
+      description: "This is a sample compliance record",
+      status: "OPEN",
+      priority: "MEDIUM",
+      score: 75,
+    });
+  }, []);
 
-  if (!data) {
-    return <p className="text-center mt-10">Loading...</p>;
+  const handleEdit = () => {
+    // Navigate to form page with id
+    window.location.href = `/form?id=${record.id}`;
+  };
+
+  const handleDelete = () => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this record?"
+    );
+
+    if (confirmDelete) {
+      // Simulate delete
+      alert("Record deleted successfully");
+
+      // Redirect to list page
+      window.location.href = "/";
+    }
+  };
+
+  if (!record) {
+    return <div className="p-6">Loading...</div>;
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4">Detail</h1>
 
-      {/* Title */}
-      <h2 className="text-2xl font-bold mb-3">{data.title}</h2>
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-lg font-semibold mb-2">{record.title}</h2>
 
-      {/* Description */}
-      <p className="text-gray-700 mb-4">{data.description}</p>
+        <p className="mb-2 text-gray-600">{record.description}</p>
 
-      {/* Info */}
-      <div className="space-y-2 mb-4">
-        <p><strong>Status:</strong> {data.status}</p>
-        <p><strong>Priority:</strong> {data.priority}</p>
+        <p className="mb-1">Status: {record.status}</p>
+        <p className="mb-1">Priority: {record.priority}</p>
+
+        <div className="mt-2 inline-block bg-blue-500 text-white px-3 py-1 rounded">
+          Score: {record.score}
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+          <button
+            onClick={handleEdit}
+            className="bg-yellow-500 text-white px-4 py-2 rounded"
+          >
+            Edit
+          </button>
+
+          <button
+            onClick={handleDelete}
+            className="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            Delete
+          </button>
+        </div>
       </div>
-
-      {/* Score Badge */}
-      <div className="mb-4">
-        <span className="px-3 py-1 bg-blue-500 text-white rounded">
-          Score: {data.score}
-        </span>
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-3 mb-6">
-        <button
-          className="bg-yellow-500 text-white px-4 py-2 rounded"
-          onClick={() => (window.location.href = `/form?id=${data.id}`)}
-        >
-          Edit
-        </button>
-
-        <button
-          className="bg-red-500 text-white px-4 py-2 rounded"
-          onClick={() => alert("Record deleted successfully")}
-        >
-          Delete
-        </button>
-      </div>
-
-      {/* AI Panel */}
-      <AIPanel />
-
     </div>
   );
 }

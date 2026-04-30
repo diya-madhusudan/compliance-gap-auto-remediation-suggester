@@ -3,13 +3,16 @@ import ListPage from "./pages/ListPage";
 import FormPage from "./pages/FormPage";
 import Dashboard from "./pages/Dashboard";
 import DetailPage from "./pages/DetailPage";
+import Analytics from "./pages/Analytics";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const path = window.location.pathname;
 
+  // 🔐 Login
   if (path === "/" || path === "/login") return <LoginPage />;
 
+  // 📊 Dashboard
   if (path === "/dashboard") {
     return (
       <ProtectedRoute>
@@ -18,6 +21,16 @@ function App() {
     );
   }
 
+  // 📈 Analytics
+  if (path === "/analytics") {
+    return (
+      <ProtectedRoute>
+        <Analytics />
+      </ProtectedRoute>
+    );
+  }
+
+  // 📄 Detail Page
   if (path.startsWith("/detail")) {
     return (
       <ProtectedRoute>
@@ -26,6 +39,7 @@ function App() {
     );
   }
 
+  // 📝 Form Page
   if (path === "/form") {
     return (
       <ProtectedRoute>
@@ -34,6 +48,7 @@ function App() {
     );
   }
 
+  // 📋 Default → List Page
   return (
     <ProtectedRoute>
       <ListPage />

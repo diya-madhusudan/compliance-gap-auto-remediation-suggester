@@ -14,70 +14,45 @@ function AIPanel({ record }) {
       let risk = "";
       let confidence = 0;
 
-      // 🔥 Severity from priority
+      // Severity
       if (record.priority === "HIGH") severity = "Critical";
       else if (record.priority === "MEDIUM") severity = "Moderate";
       else severity = "Low";
 
-      // 🔥 Risk from score
+      // Risk
       if (record.score >= 70) risk = "High Risk";
       else if (record.score >= 40) risk = "Medium Risk";
       else risk = "Low Risk";
 
-      // 🔥 Smart logic (title + status)
       const title = record.title.toLowerCase();
 
       if (title.includes("password")) {
-        recommendation =
-          "Weak password policy detected. Enforce strong authentication mechanisms.";
+        recommendation = "Weak password policy detected.";
         actions = [
-          "Use minimum 8–12 characters",
-          "Add uppercase, lowercase, numbers, symbols",
-          "Enable password expiry",
-          "Implement MFA",
+          "Use strong passwords",
+          "Enable MFA",
+          "Rotate passwords",
         ];
         confidence = 92;
       } else if (title.includes("access")) {
-        recommendation =
-          "Access control gap detected. Apply least privilege and role-based access.";
+        recommendation = "Access control issue detected.";
         actions = [
-          "Implement RBAC",
-          "Audit user permissions",
-          "Restrict admin access",
-          "Enable MFA",
+          "Apply RBAC",
+          "Audit permissions",
         ];
         confidence = 90;
       } else if (title.includes("data")) {
-        recommendation =
-          "Sensitive data exposure risk detected. Strengthen encryption and storage policies.";
+        recommendation = "Data protection gap detected.";
         actions = [
-          "Encrypt data at rest",
-          "Encrypt data in transit",
-          "Restrict data access",
-          "Enable logging",
+          "Encrypt data",
+          "Restrict access",
         ];
         confidence = 88;
-      } else if (
-        record.priority === "HIGH" &&
-        record.status !== "CLOSED"
-      ) {
-        recommendation =
-          "High priority compliance gap is unresolved. Immediate remediation required.";
-        actions = [
-          "Assign issue immediately",
-          "Apply corrective controls",
-          "Conduct risk assessment",
-          "Track remediation timeline",
-        ];
-        confidence = 85;
       } else {
-        recommendation =
-          "General compliance gap detected. Apply standard governance and security practices.";
+        recommendation = "General compliance gap.";
         actions = [
-          "Review compliance framework",
-          "Implement best practices",
-          "Document policies",
-          "Monitor regularly",
+          "Review policies",
+          "Apply best practices",
         ];
         confidence = 75;
       }
@@ -113,53 +88,22 @@ function AIPanel({ record }) {
 
       {result && (
         <div className="mt-4 bg-gray-100 p-4 rounded">
-          {/* 🔥 Risk + Severity */}
-          <div className="flex justify-between mb-2">
-            <p>
-              <strong>Severity:</strong> {result.severity}
-            </p>
-            <p>
-              <strong>Risk:</strong>{" "}
-              <span
-                className={
-                  result.risk === "High Risk"
-                    ? "text-red-600"
-                    : result.risk === "Medium Risk"
-                    ? "text-yellow-600"
-                    : "text-green-600"
-                }
-              >
-                {result.risk}
-              </span>
-            </p>
-          </div>
+          <p><strong>Severity:</strong> {result.severity}</p>
+          <p><strong>Risk:</strong> {result.risk}</p>
 
-          {/* 🔥 Recommendation */}
           <p className="mt-2">
-            <strong>Recommendation:</strong>{" "}
-            {result.recommendation}
+            <strong>Recommendation:</strong> {result.recommendation}
           </p>
 
-          {/* 🔥 Actions */}
           <ul className="mt-2 list-disc pl-5">
             {result.actions.map((a, i) => (
               <li key={i}>{a}</li>
             ))}
           </ul>
 
-          {/* 🔥 Confidence */}
-          <div className="mt-3">
-            <p>
-              <strong>AI Confidence:</strong> {result.confidence}%
-            </p>
-
-            <div className="w-full bg-gray-300 h-2 rounded mt-1">
-              <div
-                className="bg-indigo-600 h-2 rounded"
-                style={{ width: `${result.confidence}%` }}
-              ></div>
-            </div>
-          </div>
+          <p className="mt-3">
+            <strong>AI Confidence:</strong> {result.confidence}%
+          </p>
         </div>
       )}
     </div>
